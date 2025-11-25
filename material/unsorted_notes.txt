@@ -1,0 +1,140 @@
+K8s Workshop - Notes:
+
+Was ist K8s
+git clone https://github.com/iScraM12/k8s-workshop-files.git
+
+https://github.com/iScraM12/k8s-provider-service
+https://github.com/iScraM12/k8s-consumer-service
+
+echo xXx | base64 --decode
+
+
+KUBERNETES -> K8S
+Open-Source-System
+containerbasierte Apps schneller
+zu erstellen
+auszuliefern und 
+zu skalieren
+ursprünglich von Google entworfen
+
+
+https://isonbgvm396.isoad.isogmbh.de/
+user: Kürzel
+pw: workshop20251126
+
+https://kubernetes.io/de/docs/reference/kubectl/cheatsheet/
+
+
+
+
+1. ClusterIP (Der Standard)
+"Nur intern erreichbar"
+
+Was es ist: Dies ist der Standard-Service-Typ. Kubernetes weist dem Service eine interne IP-Adresse zu, die nur innerhalb des Clusters erreichbar ist.
+
+Wie es funktioniert: Wenn Pod A mit Pod B reden will (z.B. Backend redet mit Datenbank), nutzt er die ClusterIP.
+
+Zugriff von außen: Nicht möglich (ohne Tricks wie kubectl proxy oder Ingress).
+
+Analogie: Wie die interne Durchwahl in einer Firma. Man kann Kollegen anrufen, aber niemand von draußen kann diese Nummer direkt wählen.
+
+2. NodePort (Der Türöffner)
+"Von außen über den Node erreichbar"
+
+Was es ist: Dieser Typ baut auf ClusterIP auf, öffnet aber zusätzlich einen spezifischen Port an jedem Worker Node im Cluster (standardmäßig im Bereich 30000-32767).
+
+Wie es funktioniert: Kubernetes reserviert einen Port (z.B. 31000). Wenn du nun die IP-Adresse irgendeines deiner Worker Nodes plus diesen Port aufrufst (z.B. 192.168.1.50:31000), landest du bei deinem Service.
+
+Zugriff von außen: Ja, direkt über die IP des Servers (Nodes).
+
+Analogie: Wie eine öffentliche Telefondurchwahl. Wenn man die Hauptnummer der Firma (Node IP) und die Durchwahl (Port) kennt, kommt man von extern direkt durch.
+
+
+KUSTOMZIE:
+
+Kustomize ist ein natives Konfigurations-Management-Tool für Kubernetes. Es ermöglicht dir, existierende YAML-Dateien für verschiedene Umgebungen (Dev, Stage, Prod) anzupassen, ohne die Originaldateien zu verändern.
+
+Im Gegensatz zu Helm (das Templates benutzt), arbeitet Kustomize rein mit YAML und dem Prinzip der Überlagerung (Overlays).
+
+Das Kern-Konzept: Base & Overlays
+Man kann sich Kustomize wie Ebenen in einem Bildbearbeitungsprogramm vorstellen:
+
+Base (Die Basis): Das ist dein Fundament. Hier liegen die normalen Kubernetes-Manifeste (Deployment, Service, Ingress), die für alle Umgebungen gleich sind.
+
+Beispiel: "Starte Nginx Container."
+
+Overlays (Die Anpassung): Hier definierst du nur die Unterschiede zur Basis. Kustomize legt diese Änderungen über die Basis.
+
+Beispiel Dev: "Füge Präfix 'dev-' hinzu und nutze wenig CPU." Beispiel Prod: "Setze Replicas auf 5 und erhöhe das Memory-Limit."
+
+Warum Kustomize nutzen?
+Template-frei: Du musst keine Platzhalter wie {{ .Values.image }} in deinen YAMLs verwenden. Es bleibt valides, lesbares YAML.
+
+Native Integration: Kustomize ist seit Version 1.14 fest in kubectl eingebaut. Du brauchst kein Extra-Tool installieren.
+
+Befehl: kubectl apply -k <ordner>
+
+DRY (Don't Repeat Yourself): Du kopierst keine Dateien. Du schreibst das Deployment nur einmal (Base) und referenzierst es überall.
+
+Kustomize vs. Helm (in einem Satz)
+Helm funktioniert wie ein Formular (Suchen & Ersetzen von Werten), Kustomize funktioniert wie ein Patch (gezieltes Überschreiben von Feldern).
+
+k kustomize ./overlays/dev
+
+HELM
+
+Was ist Helm?
+Helm ist der Paketmanager für Kubernetes. Man kann es sich vorstellen wie apt (Ubuntu), brew (Mac) oder npm (Node.js), aber speziell für Kubernetes-Anwendungen.
+
+Es bündelt komplexe Kubernetes-Anwendungen in ein einziges, wiederverwendbares Paket.
+
+Die 3 Grundbausteine
+Chart (Das Paket): So nennt Helm seine Pakete. Ein Chart ist ein Ordner (oder ein gezipptes Archiv), der alle notwendigen Kubernetes-Definitionen (Deployments, Services, Ingress etc.) enthält. Diese Definitionen sind Templates (Schablonen).
+
+Values (Die Konfiguration): Die values.yaml Datei ist der Ort, an dem du das Chart konfigurierst. Hier stehen die Standardwerte (z.B. image: nginx, replicas: 1). Du kannst diese Werte beim Installieren überschreiben, ohne das Template selbst anzufassen.
+
+Release (Die Installation): Wenn du ein Chart in deinem Cluster installierst, entsteht ein "Release". Du kannst das gleiche Chart mehrfach installieren (z.B. einmal als Release "my-database-prod" und einmal als "my-database-test").
+
+Wie es funktioniert (Templating)
+Im Gegensatz zu Kustomize (Overlay/Patching) nutzt Helm eine Template-Engine (Go Templates).
+
+Input: Ein Template mit Platzhaltern (z.B. {{ .Values.image }}) + eine Konfigurationsdatei (values.yaml).
+
+Prozess: Helm füllt die Platzhalter mit den Werten.
+
+Output: Fertiges, valides Kubernetes-YAML, das an den Cluster gesendet wird.
+
+Die wichtigsten Vorteile
+Wiederverwendbarkeit: Du schreibst das Deployment einmal generisch und kannst es in 100 verschiedenen Umgebungen mit unterschiedlichen Parametern nutzen.
+
+Einfache Distribution: Es gibt riesige öffentliche Repositories (wie Artifact Hub), wo du fertige Charts für fast alles findest (Prometheus, MySQL, Jenkins, etc.). Du musst das Rad nicht neu erfinden.
+
+Versionierung & Rollback: Helm merkt sich jede Änderung. Wenn ein Deployment schiefgeht, kannst du mit einem Befehl (helm rollback) sofort zur vorherigen Version zurückkehren.
+
+Nachteile
+Komplexität: Das Schreiben von Helm-Charts erfordert das Lernen der Template-Sprache. Bei sehr komplexen Charts wird der Code schwer lesbar (viele {{ if }}, {{ range }} Blöcke).
+
+Abstraktion: Manchmal versteckt Helm zu viel Logik. Man weiß nicht genau, was im Hintergrund passiert, bis man helm template ausführt.
+
+|===
+| Feature | Helm | Kustomize
+
+| **Ansatz**
+| Templating (Platzhalter & Ersetzung)
+| Overlays (Patchen & Überlagern)
+
+| **Stärke**
+| Distribution von Standard-Software (Redis, Nginx), Paketierung, Versionierung & Rollbacks
+| Verwalten eigener Applikationen, leichte Anpassung von Umgebungen (Dev/Prod) ohne Template-Chaos
+
+| **Komplexität**
+| Hoch (eigene Template-Sprache lernen, Logik in Templates)
+| Niedrig (nur reines YAML, keine versteckte Logik)
+|===
+
+Fazit: Nutze Helm, um Software von Dritten (Datenbanken, Monitoring) zu installieren oder wenn du komplexe Apps an viele Kunden verteilen musst. Nutze Kustomize, wenn du deine eigene App für Dev/Stage/Prod konfigurieren willst und volle Kontrolle über das YAML behalten möchtest.
+
+Möchtest du sehen, wie man ein fertiges Chart aus dem Internet (z.B. Bitnami Nginx) installiert, statt selbst eines zu schreiben?
+
+helm template test-release -f values.yml .
+helm template prod-release -f values.yml . --set replicaCount=4

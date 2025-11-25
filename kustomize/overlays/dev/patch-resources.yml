@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx  # Muss exakt wie in der Base heißen!
+spec:
+  template:
+    spec:
+      containers:
+        - name: nginx
+          resources:
+            limits:
+              cpu: "200m"  # Hier ist unsere Änderung
+              memory: "128Mi"
