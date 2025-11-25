@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-consumer-service
+  labels:
+    app: k8s-consumer-service
+    tier: front
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-consumer-service
+  template:
+    metadata:
+      labels:
+        app: k8s-consumer-service
+    spec:
+      containers:
+        - name: k8s-consumer-service
+          imagePullPolicy: Always
+          image: iscram/k8s-consumer-service:1.1.3
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: k8s-workshop-consumer-config
+          livenessProbe:
+            httpGet:
+              path: /q/health/live
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /q/health/ready
+              port: 8080

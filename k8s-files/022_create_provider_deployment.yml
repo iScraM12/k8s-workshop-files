@@ -1,0 +1,45 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-provider-service
+  labels:
+    app: k8s-provider-service
+    tier: backend
+spec:
+  selector:
+    matchLabels:
+      app: k8s-provider-service
+  template:
+    metadata:
+      labels:
+        app: k8s-provider-service
+    spec:
+      containers:
+        - name: k8s-provider-service
+          imagePullPolicy: IfNotPresent
+          image: iscram/k8s-provider-service:1.0.0
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: k8s-workshop-provider-config
+          env:
+            - name: QUARKUS_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: k8s-workshop-provider-secret
+                  key: quarkus.datasource.username
+            - name: QUARKUS_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: k8s-workshop-provider-secret
+                  key: quarkus.datasource.password
+          livenessProbe:
+            httpGet:
+              path: /q/health/live
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /q/health/ready
+              port: 8080

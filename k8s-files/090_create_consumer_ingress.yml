@@ -1,0 +1,31 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: k8s-consumer-service
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: sim-mw-rewrite@kubernetescrd #sim ist der name des namespaces und muss durch den eigenen ersetzt werden
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: isonbgvm396.isoad.isogmbh.de
+      http:
+        paths:
+          - backend:
+              service:
+                name: k8s-consumer-service
+                port:
+                  number: 8080
+            path: /sim/cars-ui #sim ist der name des namespaces und muss durch den eigenen ersetzt werden
+            pathType: Prefix
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: mw-rewrite
+spec:
+  stripPrefix:
+    forceSlash: true
+    prefixes:
+      - /sim #sim ist der name des namespaces und muss durch den eigenen ersetzt werden

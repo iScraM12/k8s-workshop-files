@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-workshop-consumer-config
+  labels:
+    app: k8s-workshop-consumer
+data:
+  QUARKUS_REST_CLIENT_PROVIDER_YML_URL: "http://k8s-provider-service:8080"
+  UI_CARS_BASE_PATH: "/sim/" #sim ist der name des namespaces und muss durch den eigenen ersetzt werden

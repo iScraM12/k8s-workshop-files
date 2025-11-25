@@ -1,0 +1,26 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-provider-service
+  labels:
+    app: k8s-provider-service
+    tier: backend
+spec:
+  selector:
+    matchLabels:
+      app: k8s-provider-service
+  template:
+    metadata:
+      labels:
+        app: k8s-provider-service
+    spec:
+      containers:
+        - name: k8s-provider-service
+          imagePullPolicy: IfNotPresent
+          image: iscram/k8s-provider-service:1.0.0
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: k8s-workshop-provider-config
